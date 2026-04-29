@@ -36,15 +36,26 @@ class QRReader(VideoProcessorBase):
 
         return av.VideoFrame.from_ndarray(img, format="bgr24")
 
-# カメラ起動
-ctx = webrtc_streamer(
-    key="qr-reader",
-    video_processor_factory=QRReader,
-    rtc_configuration=RTC_CONFIGURATION,
-    # 背面カメラを優先的に使用する設定
-    media_stream_constraints={"video": {"facingMode": "environment"}, "audio": False},
-    async_processing=True,
-)
+# レイアウトを調整（左右に余白を作り、中央に配置する）
+col1, col2, col3 = st.columns([1, 3, 1])
+
+with col2:
+    # カメラ起動
+    ctx = webrtc_streamer(
+        key="qr-reader",
+        video_processor_factory=QRReader,
+        rtc_configuration=RTC_CONFIGURATION,
+        # 背面カメラ + 解像度の制限（動作を軽くし、サイズ感を調整）
+        media_stream_constraints={
+            "video": {
+                "facingMode": "environment",
+                "width": {"ideal": 640},
+                "height": {"ideal": 480},
+            },
+            "audio": False
+        },
+        async_processing=True,
+    )
 
 # 読み取った QR の内容を表示
 if ctx.video_processor:
